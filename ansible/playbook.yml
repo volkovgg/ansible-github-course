@@ -53,17 +53,17 @@
 
     - name: Ensure PHP is installed
       ansible.builtin.apt:
-        name: php7.4
+        name: php8.0
         state: present
 
     - name: Ensure PHP Module for Apache is installed
       ansible.builtin.apt:
-        name: libapache2-mod-php7.4
+        name: libapache2-mod-php8.0
         state: present
 
     - name: Ensure MySQL for Apache is installed
       ansible.builtin.apt:
-        name: php7.4-mysql
+        name: php8.0-mysql
         state: present
 
 - name: Deploy the application-package
