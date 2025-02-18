@@ -1,7 +1,7 @@
 name: LAMP Deployment
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   linting:
@@ -11,12 +11,13 @@ jobs:
     steps:
     - name: Checkout sources
       uses: actions/checkout@v2
-    - name: Linting
-      uses: ansible/ansible-lint-action@c37fb7b4bda2c8cb18f4942716bae9f11b0dc9bc
-      with:
-        targets:
-          ansible/playbook.yml
-          ansible/inventory.yml
 
+    - name: Install dependencies
+      run: pip install --upgrade ansible-lint rich
+
+    - name: Lint Ansible files
+      uses: ansible/ansible-lint-action@latest
+      with:
+        targets: "ansible/playbook.yml ansible/inventory.yml"
         args: "-c ansible/ansible-lint"
           
