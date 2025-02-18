@@ -1,79 +1,88 @@
 ---
 
 - name: Basic configuration for all servers
-  # The approach in this playbook is shared on numerous locations online, it is impossible to find the original source
-  # One source is: https://serverfault.com/questions/132970/can-i-automatically-add-a-new-host-to-known-hosts
   hosts: all
   gather_facts: no
   connection: local
   tasks:
-    - name: ensure .ssh directory exists
-      file:
+    - name: Ensure .ssh directory exists
+      ansible.builtin.file:
         path: ~/.ssh
-        mode: 0700
+        mode: '0700'
         state: directory
-    - name: ensure known_hosts file exists
-      copy:
+
+    - name: Ensure known_hosts file exists
+      ansible.builtin.copy:
         content: ""
         dest: ~/.ssh/known_hosts
-        mode: 0600
-    - name: "check if known_hosts contains server's fingerprint"
-      command: ssh-keygen -F {{ inventory_hostname }}
+        mode: '0600'
+
+    - name: Check if known_hosts contains server's fingerprint
+      ansible.builtin.command: ssh-keygen -F {{ inventory_hostname }}
       register: keygen
       failed_when: keygen.stderr != ''
       changed_when: false
 
-    - name: fetch remote ssh key
-      command: ssh-keyscan -T5 {{ inventory_hostname }}
+    - name: Fetch remote ssh key
+      ansible.builtin.command: ssh-keyscan -T5 {{ inventory_hostname }}
       register: keyscan
-      failed_when: keyscan.rc != 0 or keyscan-stdout == ''
+      failed_when: keyscan.rc != 0 or keyscan.stdout == ''
       changed_when: false
       when: keygen.rc == 1
 
-    - name: add ssh-key to local known_hosts
-      lineinfile:
-        name: ~/.ssh/known_hosts
+    - name: Add ssh-key to local known_hosts
+      ansible.builtin.lineinfile:
+        path: ~/.ssh/known_hosts
         create: yes
         line: "{{ item }}"
         mode: '0600'
       when: keygen.rc == 1
-      with_items: '{{ keyscan.stdout_lines|default([]) }}'
+      loop: "{{ keyscan.stdout_lines | default([]) }}"
 
-- name: Ensure Apache is installed with the correct modules 
+- name: Ensure Apache is installed with the correct modules
   hosts: web-servers
+  become: yes
   tasks:
     - name: Ensure Apt is up to date
-      apt: update_cache=yes
-      become: yes
+      ansible.builtin.apt:
+        update_cache: yes
+
     - name: Ensure Apache is installed
-      apt: name=apache2=2.4.29* state=present
-      become: yes
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        version: "2.4.29*"
+
     - name: Ensure PHP is installed
-      apt: name=php7.2=7.2.24* state=present
-      become: yes
+      ansible.builtin.apt:
+        name: php7.2
+        state: present
+        version: "7.2.24*"
+
     - name: Ensure PHP Module for Apache is installed
-      apt: name=libapache2-mod-php7.2=7.2.24* state=present
-      become: yes
-    - name: Ensure MySql for Apache is installed
-      apt: name=php7.2-mysql=latest state=present
-      become: yes
+      ansible.builtin.apt:
+        name: libapache2-mod-php7.2
+        state: present
+        version: "7.2.24*"
+
+    - name: Ensure MySQL for Apache is installed
+      ansible.builtin.apt:
+        name: php7.2-mysql
+        state: present
 
 - name: Deploy the application-package
   hosts: web-servers
+  become: yes
   tasks:
-  - name: Install PHP File
-    copy:
-      src: files/index.php
-      dest: /var/www/html/index.php
-      owner: www-data
-      group: www-data
-      mode: '0644'
-    become: yes
-  - name: Ensure default HTML file does not exist
-    file:
-      path: /var/www/html/index.html
-      state: absent
-    become: yes
+    - name: Install PHP File
+      ansible.builtin.copy:
+        src: files/index.php
+        dest: /var/www/html/index.php
+        owner: www-data
+        group: www-data
+        mode: '0644'
 
-
-
+    - name: Ensure default HTML file does not exist
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
