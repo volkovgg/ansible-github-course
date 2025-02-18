@@ -1,5 +1,4 @@
 ---
-
 - name: Basic configuration for all servers
   hosts: all
   gather_facts: no
@@ -20,17 +19,17 @@
     - name: Check if known_hosts contains server's fingerprint
       ansible.builtin.command: ssh-keygen -F {{ inventory_hostname }}
       register: keygen
-      failed_when: keygen.stderr != ''
+      failed_when: keygen.stderr != ""
       changed_when: false
 
-    - name: Fetch remote ssh key
+    - name: Fetch remote SSH key
       ansible.builtin.command: ssh-keyscan -T5 {{ inventory_hostname }}
       register: keyscan
-      failed_when: keyscan.rc != 0 or keyscan.stdout == ''
+      failed_when: keyscan.rc != 0 or keyscan.stdout == ""
       changed_when: false
       when: keygen.rc == 1
 
-    - name: Add ssh-key to local known_hosts
+    - name: Add SSH key to local known_hosts
       ansible.builtin.lineinfile:
         path: ~/.ssh/known_hosts
         create: yes
@@ -45,25 +44,22 @@
   tasks:
     - name: Ensure Apt is up to date
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
 
     - name: Ensure Apache is installed
       ansible.builtin.apt:
         name: apache2
         state: present
-        version: "2.4.29*"
 
     - name: Ensure PHP is installed
       ansible.builtin.apt:
         name: php7.2
         state: present
-        version: "7.2.24*"
 
     - name: Ensure PHP Module for Apache is installed
       ansible.builtin.apt:
         name: libapache2-mod-php7.2
         state: present
-        version: "7.2.24*"
 
     - name: Ensure MySQL for Apache is installed
       ansible.builtin.apt:

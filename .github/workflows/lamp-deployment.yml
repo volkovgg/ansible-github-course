@@ -1,23 +1,24 @@
 name: LAMP Deployment
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  linting:
-    name: Lint Ansible files
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout sources
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: pip install --upgrade ansible-lint rich
+      - name: Install Ansible
+        run: sudo apt update && sudo apt install -y ansible
 
-    - name: Lint Ansible files
-      uses: ansible/ansible-lint-action@v6
-      with:
-        targets: "ansible/playbook.yml ansible/inventory.yml"
-        args: "-c ansible/ansible-lint"
-          
+      - name: Run Ansible Lint
+        uses: ansible/ansible-lint-action@v6
+        with:
+          path: "ansible/playbook.yml"
+
+      - name: Execute Ansible Playbook
+        run: ansible-playbook ansible/playbook.yml -i ansible/inventory.yml
