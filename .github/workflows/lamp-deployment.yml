@@ -16,7 +16,7 @@ jobs:
       run: pip install --upgrade ansible-lint rich
 
     - name: Lint Ansible files
-      uses: ansible/ansible-lint-action@latest
+      uses: ansible/ansible-lint-action@v6
       with:
         targets: "ansible/playbook.yml ansible/inventory.yml"
         args: "-c ansible/ansible-lint"
