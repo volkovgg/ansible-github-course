@@ -1,7 +1,7 @@
 ---
 - name: Basic configuration for all servers
   hosts: all
-  gather_facts: no
+  gather_facts: false   # ✅ Use `false` instead of `no`
   connection: local
   tasks:
     - name: Ensure .ssh directory exists
@@ -19,20 +19,20 @@
     - name: Check if known_hosts contains server's fingerprint
       ansible.builtin.command: ssh-keygen -F {{ inventory_hostname }}
       register: keygen
-      failed_when: keygen.stderr != ""
-      changed_when: false
+      failed_when: keygen.stderr != ''
+      changed_when: false  # ✅ Use `false`
 
-    - name: Fetch remote SSH key
+    - name: Fetch remote ssh key
       ansible.builtin.command: ssh-keyscan -T5 {{ inventory_hostname }}
       register: keyscan
-      failed_when: keyscan.rc != 0 or keyscan.stdout == ""
-      changed_when: false
+      failed_when: keyscan.rc != 0 or keyscan.stdout == ''
+      changed_when: false  # ✅ Use `false`
       when: keygen.rc == 1
 
-    - name: Add SSH key to local known_hosts
+    - name: Add ssh-key to local known_hosts
       ansible.builtin.lineinfile:
         path: ~/.ssh/known_hosts
-        create: yes
+        create: true  # ✅ Use `true`
         line: "{{ item }}"
         mode: '0600'
       when: keygen.rc == 1
@@ -40,11 +40,11 @@
 
 - name: Ensure Apache is installed with the correct modules
   hosts: web-servers
-  become: yes
+  become: true
   tasks:
     - name: Ensure Apt is up to date
       ansible.builtin.apt:
-        update_cache: true
+        update_cache: true  # ✅ Use `true`
 
     - name: Ensure Apache is installed
       ansible.builtin.apt:
@@ -68,7 +68,7 @@
 
 - name: Deploy the application-package
   hosts: web-servers
-  become: yes
+  become: true
   tasks:
     - name: Install PHP File
       ansible.builtin.copy:
